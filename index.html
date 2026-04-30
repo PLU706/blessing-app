@@ -4,54 +4,132 @@
 <meta charset="UTF-8">
 <title>Daily Blessing</title>
 
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <style>
 body {
   margin: 0;
-  font-family: Georgia, serif;
-  color: white;
-  text-align: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
+  font-family: "Georgia", serif;
   background-size: cover;
   background-position: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
 }
 
-.overlay {
-  background: rgba(0,0,0,0.4);
-  padding: 40px;
-  border-radius: 20px;
-  max-width: 600px;
+/* 整体模糊背景 */
+.bg-blur {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  backdrop-filter: blur(8px);
+  background: rgba(0,0,0,0.3);
 }
 
-h1 { font-size: 40px; }
-.verse { font-size: 20px; margin: 20px 0; }
-.ref { opacity: 0.8; }
-.footer { margin-top: 20px; font-style: italic; }
+/* 卡片容器（手机比例） */
+.card-wrapper {
+  position: relative;
+  width: 360px;
+  height: 640px;
+  border-radius: 30px;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+}
+
+/* 卡片背景 */
+.card-bg {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  filter: brightness(0.8);
+}
+
+/* 渐变层 */
+.gradient {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.7));
+}
+
+/* 内容 */
+.content {
+  position: relative;
+  z-index: 2;
+  color: white;
+  text-align: center;
+  padding: 40px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+}
+
+h1 {
+  font-size: 28px;
+  margin-bottom: 20px;
+}
+
+.verse {
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+.ref {
+  margin-top: 10px;
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+.footer {
+  margin-top: 30px;
+  font-style: italic;
+  font-size: 16px;
+}
+
+/* 按钮 */
+.controls {
+  position: absolute;
+  bottom: 15px;
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+  z-index: 3;
+}
 
 button {
-  margin: 10px;
-  padding: 10px 20px;
+  padding: 8px 12px;
   border: none;
   border-radius: 10px;
-  background: white;
-  color: black;
+  background: rgba(255,255,255,0.9);
   cursor: pointer;
+  font-size: 12px;
 }
 </style>
 </head>
 
 <body>
 
-<div class="overlay" id="card">
-  <h1 id="day"></h1>
-  <div class="verse" id="verse"></div>
-  <div class="ref" id="ref"></div>
-  <div class="footer" id="footer"></div>
+<div class="bg-blur"></div>
 
-  <button onclick="toggleLang()">🌍 中文 / English</button>
-  <button onclick="downloadImage()">📸 Download</button>
+<div class="card-wrapper" id="card">
+  <div class="card-bg" id="bg"></div>
+  <div class="gradient"></div>
+
+  <div class="content">
+    <h1 id="day"></h1>
+    <div class="verse" id="verse"></div>
+    <div class="ref" id="ref"></div>
+    <div class="footer" id="footer"></div>
+  </div>
+
+  <div class="controls">
+    <button onclick="toggleLang()">🌍 中文/EN</button>
+    <button onclick="downloadImage()">📸 保存图片</button>
+  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/html2canvas"></script>
@@ -66,14 +144,14 @@ const verses = [
     ref: "Psalm 46:10"
   },
   {
+    en: "I can do all things through Christ who strengthens me.",
+    zh: "我靠着那加给我力量的，凡事都能做。",
+    ref: "Philippians 4:13"
+  },
+  {
     en: "The Lord is my shepherd; I shall not want.",
     zh: "耶和华是我的牧者，我必不致缺乏。",
     ref: "Psalm 23:1"
-  },
-  {
-    en: "I can do all things through Christ.",
-    zh: "我靠着那加给我力量的，凡事都能做。",
-    ref: "Philippians 4:13"
   }
 ];
 
@@ -97,7 +175,7 @@ function random(seed, max) {
 const verseIndex = random(seed, verses.length);
 const imageIndex = random(seed + 1, images.length);
 
-document.body.style.backgroundImage = `url(${images[imageIndex]})`;
+document.getElementById("bg").style.backgroundImage = `url(${images[imageIndex]})`;
 
 function render() {
   const day = isChinese ? days_zh[today.getDay()] : days_en[today.getDay()];
@@ -116,17 +194,26 @@ function render() {
 
 render();
 
+/* 切换语言 */
 function toggleLang() {
   isChinese = !isChinese;
   render();
 }
 
+/* 下载图片（高清+隐藏按钮） */
 function downloadImage() {
-  html2canvas(document.getElementById("card")).then(canvas => {
+  const controls = document.querySelector(".controls");
+  controls.style.display = "none";
+
+  html2canvas(document.getElementById("card"), {
+    scale: 2
+  }).then(canvas => {
     const link = document.createElement("a");
-    link.download = "blessing.png";
+    link.download = "blessing-card.png";
     link.href = canvas.toDataURL();
     link.click();
+
+    controls.style.display = "flex";
   });
 }
 </script>
