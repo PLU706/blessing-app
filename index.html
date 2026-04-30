@@ -24,6 +24,7 @@ body {
   background:#000;
 }
 
+/* 图片 */
 .bg-img {
   position:absolute;
   width:100%;
@@ -31,6 +32,7 @@ body {
   object-fit:cover;
 }
 
+/* 渐变 */
 .overlay {
   position:absolute;
   width:100%;
@@ -38,6 +40,7 @@ body {
   background:linear-gradient(to bottom,rgba(0,0,0,0.05),rgba(0,0,0,0.6));
 }
 
+/* 内容 */
 .content {
   position:relative;
   height:100%;
@@ -47,30 +50,23 @@ body {
   text-align:center;
   color:white;
   padding:120px 20px 80px;
-  text-shadow:0 2px 10px rgba(0,0,0,0.7);
 }
 
-h1 {
-  margin-bottom:20px;
-  font-size:26px;
-}
+h1 { margin-bottom:20px; }
 
 .verse-en {
   font-size:17px;
-  line-height:1.6;
   margin:10px auto;
   max-width:260px;
 }
 
 .verse-zh {
   font-size:18px;
-  line-height:1.7;
   margin:10px auto;
   max-width:260px;
 }
 
 .ref {
-  margin-top:10px;
   font-size:14px;
   opacity:0.8;
 }
@@ -80,21 +76,28 @@ h1 {
   font-style:italic;
 }
 
-/* 按钮 */
+/* 控件 */
 .controls {
   position:absolute;
   bottom:10px;
   width:100%;
   display:flex;
+  flex-wrap:wrap;
   justify-content:center;
-  gap:6px;
+  gap:5px;
+}
+
+input {
+  width:120px;
+  border-radius:8px;
+  border:none;
+  padding:5px;
 }
 
 button {
   border:none;
   border-radius:10px;
   padding:6px 10px;
-  font-size:12px;
 }
 </style>
 </head>
@@ -102,7 +105,7 @@ button {
 <body>
 
 <div class="card" id="card">
-  <img id="bg" class="bg-img" crossorigin="anonymous">
+  <img id="bg" class="bg-img">
   <div class="overlay"></div>
 
   <div class="content">
@@ -114,7 +117,9 @@ button {
   </div>
 
   <div class="controls">
-    <button onclick="randomVerse()">🔁 换一句</button>
+    <input id="search" placeholder="John / 诗篇">
+    <button onclick="searchVerse()">🔍 搜索</button>
+    <button onclick="randomVerse()">🔁 随机</button>
     <button onclick="downloadImage()">📸 保存</button>
   </div>
 </div>
@@ -122,27 +127,24 @@ button {
 <script src="https://cdn.jsdelivr.net/npm/html2canvas"></script>
 
 <script>
-const images=[
-"https://images.unsplash.com/photo-1506744038136-46273834b3fb",
-"https://images.unsplash.com/photo-1501785888041-af3ef285b470",
-"https://images.unsplash.com/photo-1493244040629-496f6d136cc3",
-"https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
-"https://images.unsplash.com/photo-1470770841072-f978cf4d019e"
-];
-
-const bg=document.getElementById("bg");
+/* ✅ 稳定图片 */
+const images = Array.from({length:10}, (_,i)=>
+  "https://picsum.photos/400/700?random="+i
+);
 
 function randomBg(){
-  bg.src=images[Math.floor(Math.random()*images.length)];
+  document.getElementById("bg").src =
+    images[Math.floor(Math.random()*images.length)];
 }
 
+/* 星期 */
 const days=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 function updateDay(){
   const d=new Date().getDay();
   document.getElementById("day").innerText="Blessing "+days[d];
 }
 
-/* 简单中文库（常用经文） */
+/* 中文映射 */
 const zhMap={
 "John 3:16":"神爱世人，甚至将他的独生子赐给他们...",
 "Psalm 23:1":"耶和华是我的牧者，我必不致缺乏。",
@@ -154,28 +156,51 @@ const zhMap={
 "Jeremiah 29:11":"我知道我向你们所怀的意念。"
 };
 
-async function randomVerse(){
+/* 🔥 中文 → 英文转换 */
+function parseInput(input){
+
+  input=input.trim();
+
+  if(input.includes("诗篇")) return input.replace("诗篇","Psalm ");
+  if(input.includes("约翰")) return input.replace("约翰福音","John ");
+  if(input.includes("罗马")) return input.replace("罗马书","Romans ");
+  if(input.includes("腓立比")) return input.replace("腓立比书","Philippians ");
+
+  return input;
+}
+
+/* 搜索 */
+async function searchVerse(){
 
   randomBg();
 
-  const list=Object.keys(zhMap);
-  const q=list[Math.floor(Math.random()*list.length)];
+  let q=document.getElementById("search").value || "Psalm 23:1";
+  q=parseInput(q);
 
   try{
     const res=await fetch("https://bible-api.com/"+q);
     const data=await res.json();
 
     document.getElementById("verse-en").innerText=data.text;
-    document.getElementById("verse-zh").innerText=zhMap[q] || "";
     document.getElementById("ref").innerText=data.reference;
+    document.getElementById("verse-zh").innerText=
+      zhMap[data.reference] || "（暂无中文）";
 
   }catch{
-    document.getElementById("verse-en").innerText="Have faith.";
-    document.getElementById("verse-zh").innerText="要有信心。";
+    document.getElementById("verse-en").innerText="Not found";
+    document.getElementById("verse-zh").innerText="未找到经文";
     document.getElementById("ref").innerText="";
   }
 
   updateDay();
+}
+
+/* 随机 */
+function randomVerse(){
+  const list=Object.keys(zhMap);
+  document.getElementById("search").value=
+    list[Math.floor(Math.random()*list.length)];
+  searchVerse();
 }
 
 /* 下载 */
@@ -195,7 +220,8 @@ function downloadImage(){
   });
 }
 
-randomVerse();
+/* 初始化 */
+searchVerse();
 </script>
 
 </body>
