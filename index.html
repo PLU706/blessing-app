@@ -1,105 +1,134 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Daily Blessing</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Georgia', serif;
-      color: white;
-      text-align: center;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      background-size: cover;
-      background-position: center;
-    }
+<meta charset="UTF-8">
+<title>Daily Blessing</title>
 
-    .overlay {
-      background: rgba(0,0,0,0.4);
-      padding: 40px;
-      border-radius: 20px;
-      max-width: 600px;
-    }
+<style>
+body {
+  margin: 0;
+  font-family: Georgia, serif;
+  color: white;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background-size: cover;
+  background-position: center;
+}
 
-    h1 {
-      font-size: 40px;
-      margin-bottom: 20px;
-    }
+.overlay {
+  background: rgba(0,0,0,0.4);
+  padding: 40px;
+  border-radius: 20px;
+  max-width: 600px;
+}
 
-    .verse {
-      font-size: 20px;
-      margin: 20px 0;
-    }
+h1 { font-size: 40px; }
+.verse { font-size: 20px; margin: 20px 0; }
+.ref { opacity: 0.8; }
+.footer { margin-top: 20px; font-style: italic; }
 
-    .ref {
-      font-size: 16px;
-      opacity: 0.8;
-    }
-
-    .footer {
-      margin-top: 30px;
-      font-size: 24px;
-      font-style: italic;
-    }
-  </style>
+button {
+  margin: 10px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 10px;
+  background: white;
+  color: black;
+  cursor: pointer;
+}
+</style>
 </head>
+
 <body>
 
-<div class="overlay">
+<div class="overlay" id="card">
   <h1 id="day"></h1>
   <div class="verse" id="verse"></div>
   <div class="ref" id="ref"></div>
-  <div class="footer">Have a Beautiful Day</div>
+  <div class="footer" id="footer"></div>
+
+  <button onclick="toggleLang()">🌍 中文 / English</button>
+  <button onclick="downloadImage()">📸 Download</button>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/html2canvas"></script>
+
 <script>
-  const verses = [
-    {
-      text: "The Lord is my shepherd; I shall not want.",
-      ref: "Psalm 23:1"
-    },
-    {
-      text: "I can do all things through Christ who strengthens me.",
-      ref: "Philippians 4:13"
-    },
-    {
-      text: "Be still, and know that I am God.",
-      ref: "Psalm 46:10"
-    },
-    {
-      text: "With God all things are possible.",
-      ref: "Matthew 19:26"
-    }
-  ];
+let isChinese = false;
 
-  const images = [
-    "https://images.unsplash.com/photo-1506744038136-46273834b3fb",
-    "https://images.unsplash.com/photo-1501785888041-af3ef285b470",
-    "https://images.unsplash.com/photo-1493244040629-496f6d136cc3"
-  ];
-
-  const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-
-  const today = new Date();
-  const seed = today.getDate(); // 保证每天固定
-
-  function random(seed, max) {
-    const x = Math.sin(seed) * 10000;
-    return Math.floor((x - Math.floor(x)) * max);
+const verses = [
+  {
+    en: "Be still, and know that I am God.",
+    zh: "你们要休息，要知道我是神。",
+    ref: "Psalm 46:10"
+  },
+  {
+    en: "The Lord is my shepherd; I shall not want.",
+    zh: "耶和华是我的牧者，我必不致缺乏。",
+    ref: "Psalm 23:1"
+  },
+  {
+    en: "I can do all things through Christ.",
+    zh: "我靠着那加给我力量的，凡事都能做。",
+    ref: "Philippians 4:13"
   }
+];
 
-  const day = days[today.getDay()];
-  const verseIndex = random(seed, verses.length);
-  const imageIndex = random(seed + 1, images.length);
+const images = [
+  "https://images.unsplash.com/photo-1506744038136-46273834b3fb",
+  "https://images.unsplash.com/photo-1501785888041-af3ef285b470",
+  "https://images.unsplash.com/photo-1493244040629-496f6d136cc3"
+];
 
-  document.getElementById("day").innerText = "Blessing " + day;
-  document.getElementById("verse").innerText = verses[verseIndex].text;
+const days_en = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+const days_zh = ["星期日","星期一","星期二","星期三","星期四","星期五","星期六"];
+
+const today = new Date();
+const seed = today.getDate();
+
+function random(seed, max) {
+  const x = Math.sin(seed) * 10000;
+  return Math.floor((x - Math.floor(x)) * max);
+}
+
+const verseIndex = random(seed, verses.length);
+const imageIndex = random(seed + 1, images.length);
+
+document.body.style.backgroundImage = `url(${images[imageIndex]})`;
+
+function render() {
+  const day = isChinese ? days_zh[today.getDay()] : days_en[today.getDay()];
+
+  document.getElementById("day").innerText =
+    isChinese ? "祝福 " + day : "Blessing " + day;
+
+  document.getElementById("verse").innerText =
+    isChinese ? verses[verseIndex].zh : verses[verseIndex].en;
+
   document.getElementById("ref").innerText = verses[verseIndex].ref;
 
-  document.body.style.backgroundImage = `url(${images[imageIndex]})`;
+  document.getElementById("footer").innerText =
+    isChinese ? "愿你有美好的一天" : "Have a Beautiful Day";
+}
+
+render();
+
+function toggleLang() {
+  isChinese = !isChinese;
+  render();
+}
+
+function downloadImage() {
+  html2canvas(document.getElementById("card")).then(canvas => {
+    const link = document.createElement("a");
+    link.download = "blessing.png";
+    link.href = canvas.toDataURL();
+    link.click();
+  });
+}
 </script>
 
 </body>
