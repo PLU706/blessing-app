@@ -8,7 +8,7 @@
 <style>
 body {
   margin:0;
-  background:#000; /* ✅ 关键：页面整体黑底 */
+  background:#000;
   display:flex;
   justify-content:center;
   align-items:center;
@@ -16,13 +16,13 @@ body {
   font-family:Georgia,serif;
 }
 
+/* ❌ 去掉圆角 */
 .card {
   width:360px;
   height:640px;
-  border-radius:30px;
-  overflow:hidden;
   position:relative;
-  background:#000; /* ✅ 防止白边 */
+  overflow:hidden;
+  background:#000;
   box-shadow:0 20px 40px rgba(0,0,0,0.5);
 }
 
@@ -32,10 +32,10 @@ body {
   width:100%;
   height:100%;
   object-fit:cover;
-  display:block; /* ✅ 防止缝隙 */
+  display:block;
 }
 
-/* 渐变遮罩（已优化） */
+/* 渐变 */
 .overlay {
   position:absolute;
   width:100%;
@@ -43,7 +43,7 @@ body {
   background:linear-gradient(
     to bottom,
     rgba(0,0,0,0.05),
-    rgba(0,0,0,0.55)
+    rgba(0,0,0,0.6)
   );
 }
 
@@ -56,8 +56,8 @@ body {
   justify-content:center;
   text-align:center;
   color:white;
-  padding:120px 20px 80px; /* ✅ 视觉优化 */
-  text-shadow:0 2px 10px rgba(0,0,0,0.6);
+  padding:120px 20px 80px;
+  text-shadow:0 2px 10px rgba(0,0,0,0.7);
 }
 
 h1 {
@@ -125,15 +125,26 @@ button {
 <script src="https://cdn.jsdelivr.net/npm/html2canvas"></script>
 
 <script>
-/* 背景图 */
+/* ✅ 扩展图片库（10张） */
 const images=[
 "https://images.unsplash.com/photo-1506744038136-46273834b3fb",
 "https://images.unsplash.com/photo-1501785888041-af3ef285b470",
-"https://images.unsplash.com/photo-1493244040629-496f6d136cc3"
+"https://images.unsplash.com/photo-1493244040629-496f6d136cc3",
+"https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
+"https://images.unsplash.com/photo-1470770841072-f978cf4d019e",
+"https://images.unsplash.com/photo-1507525428034-b723cf961d3e",
+"https://images.unsplash.com/photo-1441974231531-c6227db76b6e",
+"https://images.unsplash.com/photo-1502082553048-f009c37129b9",
+"https://images.unsplash.com/photo-1500534314209-a25ddb2bd429",
+"https://images.unsplash.com/photo-1469474968028-56623f02e42e"
 ];
 
 const bg=document.getElementById("bg");
-bg.src=images[Math.floor(Math.random()*images.length)];
+
+/* 随机背景 */
+function randomBg(){
+  bg.src=images[Math.floor(Math.random()*images.length)];
+}
 
 /* 星期 */
 const days=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
@@ -144,7 +155,20 @@ function updateDay(){
 
 /* 经文 */
 async function randomVerse(){
-  const list=["John 3:16","Psalm 23:1","Romans 8:28","Philippians 4:13"];
+
+  randomBg();
+
+  const list=[
+    "John 3:16",
+    "Psalm 23:1",
+    "Romans 8:28",
+    "Philippians 4:13",
+    "Isaiah 41:10",
+    "Matthew 5:16",
+    "Proverbs 3:5",
+    "Jeremiah 29:11"
+  ];
+
   const q=list[Math.floor(Math.random()*list.length)];
 
   try{
@@ -154,14 +178,14 @@ async function randomVerse(){
     document.getElementById("verse").innerText=data.text;
     document.getElementById("ref").innerText=data.reference;
   }catch{
-    document.getElementById("verse").innerText="Be strong and have faith.";
+    document.getElementById("verse").innerText="Stay strong and trust God.";
     document.getElementById("ref").innerText="";
   }
 
   updateDay();
 }
 
-/* 📸 下载（终极无白边版） */
+/* 下载 */
 function downloadImage(){
 
   const controls=document.querySelector(".controls");
@@ -178,8 +202,7 @@ function downloadImage(){
   function capture(){
     html2canvas(document.getElementById("card"),{
       useCORS:true,
-      scale:2,
-      backgroundColor:null /* ✅ 关键：去白边 */
+      scale:2
     }).then(canvas=>{
       const link=document.createElement("a");
       link.download="blessing.png";
