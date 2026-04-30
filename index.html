@@ -16,38 +16,28 @@ body {
   font-family:Georgia,serif;
 }
 
-/* ❌ 去掉圆角 */
 .card {
   width:360px;
   height:640px;
   position:relative;
   overflow:hidden;
   background:#000;
-  box-shadow:0 20px 40px rgba(0,0,0,0.5);
 }
 
-/* 背景图 */
 .bg-img {
   position:absolute;
   width:100%;
   height:100%;
   object-fit:cover;
-  display:block;
 }
 
-/* 渐变 */
 .overlay {
   position:absolute;
   width:100%;
   height:100%;
-  background:linear-gradient(
-    to bottom,
-    rgba(0,0,0,0.05),
-    rgba(0,0,0,0.6)
-  );
+  background:linear-gradient(to bottom,rgba(0,0,0,0.05),rgba(0,0,0,0.6));
 }
 
-/* 内容 */
 .content {
   position:relative;
   height:100%;
@@ -63,17 +53,24 @@ body {
 h1 {
   margin-bottom:20px;
   font-size:26px;
-  letter-spacing:1px;
 }
 
-.verse {
-  max-width:260px;
-  margin:20px auto;
-  line-height:1.6;
+.verse-en {
   font-size:17px;
+  line-height:1.6;
+  margin:10px auto;
+  max-width:260px;
+}
+
+.verse-zh {
+  font-size:18px;
+  line-height:1.7;
+  margin:10px auto;
+  max-width:260px;
 }
 
 .ref {
+  margin-top:10px;
   font-size:14px;
   opacity:0.8;
 }
@@ -98,7 +95,6 @@ button {
   border-radius:10px;
   padding:6px 10px;
   font-size:12px;
-  cursor:pointer;
 }
 </style>
 </head>
@@ -111,74 +107,71 @@ button {
 
   <div class="content">
     <h1 id="day"></h1>
-    <div class="verse" id="verse">Loading...</div>
+    <div class="verse-en" id="verse-en">Loading...</div>
+    <div class="verse-zh" id="verse-zh"></div>
     <div class="ref" id="ref"></div>
-    <div class="footer">Have a Beautiful Day</div>
+    <div class="footer">愿你有美好的一天</div>
   </div>
 
   <div class="controls">
-    <button onclick="randomVerse()">🔁 Random</button>
-    <button onclick="downloadImage()">📸 Download</button>
+    <button onclick="randomVerse()">🔁 换一句</button>
+    <button onclick="downloadImage()">📸 保存</button>
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/html2canvas"></script>
 
 <script>
-/* ✅ 扩展图片库（10张） */
 const images=[
 "https://images.unsplash.com/photo-1506744038136-46273834b3fb",
 "https://images.unsplash.com/photo-1501785888041-af3ef285b470",
 "https://images.unsplash.com/photo-1493244040629-496f6d136cc3",
 "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
-"https://images.unsplash.com/photo-1470770841072-f978cf4d019e",
-"https://images.unsplash.com/photo-1507525428034-b723cf961d3e",
-"https://images.unsplash.com/photo-1441974231531-c6227db76b6e",
-"https://images.unsplash.com/photo-1502082553048-f009c37129b9",
-"https://images.unsplash.com/photo-1500534314209-a25ddb2bd429",
-"https://images.unsplash.com/photo-1469474968028-56623f02e42e"
+"https://images.unsplash.com/photo-1470770841072-f978cf4d019e"
 ];
 
 const bg=document.getElementById("bg");
 
-/* 随机背景 */
 function randomBg(){
   bg.src=images[Math.floor(Math.random()*images.length)];
 }
 
-/* 星期 */
 const days=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 function updateDay(){
   const d=new Date().getDay();
   document.getElementById("day").innerText="Blessing "+days[d];
 }
 
-/* 经文 */
+/* 简单中文库（常用经文） */
+const zhMap={
+"John 3:16":"神爱世人，甚至将他的独生子赐给他们...",
+"Psalm 23:1":"耶和华是我的牧者，我必不致缺乏。",
+"Romans 8:28":"万事都互相效力，叫爱神的人得益处。",
+"Philippians 4:13":"我靠着那加给我力量的，凡事都能做。",
+"Isaiah 41:10":"你不要害怕，因为我与你同在。",
+"Matthew 5:16":"你们的光也当这样照在人前。",
+"Proverbs 3:5":"你要专心仰赖耶和华。",
+"Jeremiah 29:11":"我知道我向你们所怀的意念。"
+};
+
 async function randomVerse(){
 
   randomBg();
 
-  const list=[
-    "John 3:16",
-    "Psalm 23:1",
-    "Romans 8:28",
-    "Philippians 4:13",
-    "Isaiah 41:10",
-    "Matthew 5:16",
-    "Proverbs 3:5",
-    "Jeremiah 29:11"
-  ];
-
+  const list=Object.keys(zhMap);
   const q=list[Math.floor(Math.random()*list.length)];
 
   try{
     const res=await fetch("https://bible-api.com/"+q);
     const data=await res.json();
 
-    document.getElementById("verse").innerText=data.text;
+    document.getElementById("verse-en").innerText=data.text;
+    document.getElementById("verse-zh").innerText=zhMap[q] || "";
     document.getElementById("ref").innerText=data.reference;
+
   }catch{
-    document.getElementById("verse").innerText="Stay strong and trust God.";
+    document.getElementById("verse-en").innerText="Have faith.";
+    document.getElementById("verse-zh").innerText="要有信心。";
     document.getElementById("ref").innerText="";
   }
 
@@ -187,33 +180,21 @@ async function randomVerse(){
 
 /* 下载 */
 function downloadImage(){
-
   const controls=document.querySelector(".controls");
   controls.style.display="none";
 
-  const img=document.getElementById("bg");
-
-  if(!img.complete){
-    img.onload=capture;
-  }else{
-    capture();
-  }
-
-  function capture(){
-    html2canvas(document.getElementById("card"),{
-      useCORS:true,
-      scale:2
-    }).then(canvas=>{
-      const link=document.createElement("a");
-      link.download="blessing.png";
-      link.href=canvas.toDataURL();
-      link.click();
-      controls.style.display="flex";
-    });
-  }
+  html2canvas(document.getElementById("card"),{
+    useCORS:true,
+    scale:2
+  }).then(canvas=>{
+    const link=document.createElement("a");
+    link.download="blessing.png";
+    link.href=canvas.toDataURL();
+    link.click();
+    controls.style.display="flex";
+  });
 }
 
-/* 初始化 */
 randomVerse();
 </script>
 
