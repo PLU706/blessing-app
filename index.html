@@ -24,7 +24,6 @@ body {
   background:#000;
 }
 
-/* 图片 */
 .bg-img {
   position:absolute;
   width:100%;
@@ -32,7 +31,6 @@ body {
   object-fit:cover;
 }
 
-/* 渐变 */
 .overlay {
   position:absolute;
   width:100%;
@@ -40,7 +38,6 @@ body {
   background:linear-gradient(to bottom,rgba(0,0,0,0.05),rgba(0,0,0,0.6));
 }
 
-/* 内容 */
 .content {
   position:relative;
   height:100%;
@@ -76,7 +73,6 @@ h1 { margin-bottom:20px; }
   font-style:italic;
 }
 
-/* 控件 */
 .controls {
   position:absolute;
   bottom:10px;
@@ -98,6 +94,7 @@ button {
   border:none;
   border-radius:10px;
   padding:6px 10px;
+  cursor:pointer;
 }
 </style>
 </head>
@@ -118,21 +115,25 @@ button {
 
   <div class="controls">
     <input id="search" placeholder="John / 诗篇">
-    <button onclick="searchVerse()">🔍 搜索</button>
-    <button onclick="randomVerse()">🔁 随机</button>
-    <button onclick="downloadImage()">📸 保存</button>
+    <button onclick="searchVerse()">🔍 Search</button>
+    <button onclick="randomVerse()">🔁 Random</button>
+    <button onclick="downloadImage()">⬇️ Download</button>
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/html2canvas"></script>
 
 <script>
-/* ✅ 稳定图片 */
+/* 🔒 防止保存时乱跳 */
+let isCapturing = false;
+
+/* 稳定图片 */
 const images = Array.from({length:10}, (_,i)=>
   "https://picsum.photos/400/700?random="+i
 );
 
 function randomBg(){
+  if(isCapturing) return;  // ✅ 锁住
   document.getElementById("bg").src =
     images[Math.floor(Math.random()*images.length)];
 }
@@ -140,8 +141,8 @@ function randomBg(){
 /* 星期 */
 const days=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 function updateDay(){
-  const d=new Date().getDay();
-  document.getElementById("day").innerText="Blessing "+days[d];
+  document.getElementById("day").innerText =
+    "Blessing " + days[new Date().getDay()];
 }
 
 /* 中文映射 */
@@ -156,9 +157,8 @@ const zhMap={
 "Jeremiah 29:11":"我知道我向你们所怀的意念。"
 };
 
-/* 🔥 中文 → 英文转换 */
+/* 中文输入解析 */
 function parseInput(input){
-
   input=input.trim();
 
   if(input.includes("诗篇")) return input.replace("诗篇","Psalm ");
@@ -169,10 +169,8 @@ function parseInput(input){
   return input;
 }
 
-/* 搜索 */
+/* 搜索（不再换背景） */
 async function searchVerse(){
-
-  randomBg();
 
   let q=document.getElementById("search").value || "Psalm 23:1";
   q=parseInput(q);
@@ -182,9 +180,9 @@ async function searchVerse(){
     const data=await res.json();
 
     document.getElementById("verse-en").innerText=data.text;
-    document.getElementById("ref").innerText=data.reference;
-    document.getElementById("verse-zh").innerText=
+    document.getElementById("verse-zh").innerText =
       zhMap[data.reference] || "（暂无中文）";
+    document.getElementById("ref").innerText=data.reference;
 
   }catch{
     document.getElementById("verse-en").innerText="Not found";
@@ -195,23 +193,27 @@ async function searchVerse(){
   updateDay();
 }
 
-/* 随机 */
+/* 随机（才换背景） */
 function randomVerse(){
+  randomBg();
   const list=Object.keys(zhMap);
-  document.getElementById("search").value=
+  document.getElementById("search").value =
     list[Math.floor(Math.random()*list.length)];
   searchVerse();
 }
 
-/* 下载 */
+/* 🚀 Download（终极稳定版） */
 function downloadImage(){
-  const controls = document.querySelector(".controls");
-  controls.style.display = "none";
 
-  const img = document.getElementById("bg");
+  isCapturing = true;
+
+  const controls=document.querySelector(".controls");
+  controls.style.display="none";
+
+  const img=document.getElementById("bg");
 
   if(!img.complete){
-    img.onload = capture;
+    img.onload=capture;
   }else{
     capture();
   }
@@ -221,17 +223,24 @@ function downloadImage(){
       useCORS:true,
       scale:2
     }).then(canvas=>{
-      const link = document.createElement("a");
-      link.download = "blessing.png";  // ✅ 就是 download
-      link.href = canvas.toDataURL("image/png");
+      const link=document.createElement("a");
+      link.download="blessing.png";
+      link.href=canvas.toDataURL("image/png");
       link.click();
 
-      controls.style.display = "flex";
+      controls.style.display="flex";
+      isCapturing = false;
     });
   }
 }
+
+/* 防止回车触发 */
+document.getElementById("search").addEventListener("keydown", e=>{
+  if(e.key==="Enter") e.preventDefault();
+});
+
 /* 初始化 */
-searchVerse();
+randomVerse();
 </script>
 
 </body>
