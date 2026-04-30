@@ -9,11 +9,11 @@
 body {
   margin: 0;
   font-family: Georgia, serif;
+  background: #000;
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
-  background: #000;
 }
 
 .card {
@@ -25,14 +25,15 @@ body {
   box-shadow: 0 20px 40px rgba(0,0,0,0.5);
 }
 
-.bg {
+/* 背景图（关键修复） */
+.bg-img {
   position: absolute;
   width: 100%;
   height: 100%;
-  background-size: cover;
-  background-position: center;
+  object-fit: cover;
 }
 
+/* 渐变遮罩 */
 .overlay {
   position: absolute;
   width: 100%;
@@ -40,6 +41,7 @@ body {
   background: linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.7));
 }
 
+/* 内容 */
 .content {
   position: relative;
   color: white;
@@ -49,10 +51,24 @@ body {
 
 h1 { font-size: 26px; }
 
-.verse { margin-top: 20px; font-size: 18px; }
-.ref { margin-top: 10px; font-size: 14px; opacity: 0.8; }
-.footer { margin-top: 30px; font-style: italic; }
+.verse {
+  margin-top: 20px;
+  font-size: 18px;
+  line-height: 1.6;
+}
 
+.ref {
+  margin-top: 10px;
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+.footer {
+  margin-top: 30px;
+  font-style: italic;
+}
+
+/* 控件 */
 .controls {
   position: absolute;
   bottom: 10px;
@@ -84,7 +100,10 @@ button {
 <body>
 
 <div class="card" id="card">
-  <div class="bg" id="bg"></div>
+
+  <!-- ✅ 用 img 替代 background-image -->
+  <img id="bg" class="bg-img" crossorigin="anonymous">
+
   <div class="overlay"></div>
 
   <div class="content">
@@ -96,11 +115,12 @@ button {
 
   <div class="controls">
     <input id="search" placeholder="John 3:16">
-    <button onclick="searchVerse()">🔍 Search</button>
-    <button onclick="randomVerse()">🔁 Random</button>
+    <button onclick="searchVerse()">🔍 搜索/Search</button>
+    <button onclick="randomVerse()">🔁 随机/Random</button>
     <button onclick="toggleLang()">🌍 中文/EN</button>
     <button onclick="downloadImage()">📸 保存/Download</button>
   </div>
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/html2canvas"></script>
@@ -108,15 +128,17 @@ button {
 <script>
 let isChinese = false;
 
+/* 图片 */
 const images = [
   "https://images.unsplash.com/photo-1506744038136-46273834b3fb",
   "https://images.unsplash.com/photo-1501785888041-af3ef285b470",
   "https://images.unsplash.com/photo-1493244040629-496f6d136cc3"
 ];
 
-document.getElementById("bg").style.backgroundImage =
-  `url(${images[Math.floor(Math.random()*images.length)]})`;
+const bg = document.getElementById("bg");
+bg.src = images[Math.floor(Math.random()*images.length)];
 
+/* 星期 */
 const days_en = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 const days_zh = ["星期日","星期一","星期二","星期三","星期四","星期五","星期六"];
 
@@ -127,69 +149,76 @@ function updateDay(){
     (isChinese ? "祝福 " : "Blessing ") + day;
 }
 
-updateDay();
-
+/* 搜索经文 */
 async function searchVerse(){
   const query = document.getElementById("search").value || "Psalm 23:1";
 
   document.getElementById("verse").innerText = "Loading...";
 
   try{
-    // 英文
-    const enRes = await fetch(`https://bible-api.com/${query}`);
-    const enData = await enRes.json();
+    const res = await fetch(`https://bible-api.com/${query}`);
+    const data = await res.json();
 
-    // 中文（简单处理：同reference）
-    let zhText = "(中文暂未匹配)";
-    try{
-      const zhRes = await fetch(`https://bible-api.com/${query}?translation=chiun`);
-      const zhData = await zhRes.json();
-      zhText = zhData.text;
-    }catch{}
+    document.getElementById("verse").innerText = data.text;
+    document.getElementById("ref").innerText = data.reference;
 
-    document.getElementById("verse").innerText =
-      isChinese ? zhText : enData.text;
-
-    document.getElementById("ref").innerText = enData.reference;
-
-  }catch(e){
-    document.getElementById("verse").innerText = "Verse not found";
+  }catch{
+    document.getElementById("verse").innerText = "Not found";
   }
 
   updateFooter();
+  updateDay();
 }
 
+/* 随机 */
 function randomVerse(){
-  const samples = ["John 3:16","Psalm 23:1","Romans 8:28","Philippians 4:13"];
+  const list = ["John 3:16","Psalm 23:1","Romans 8:28","Philippians 4:13"];
   document.getElementById("search").value =
-    samples[Math.floor(Math.random()*samples.length)];
+    list[Math.floor(Math.random()*list.length)];
   searchVerse();
 }
 
+/* 中英文切换 */
 function toggleLang(){
   isChinese = !isChinese;
-  searchVerse();
+  updateDay();
+  updateFooter();
 }
 
+/* footer */
 function updateFooter(){
   document.getElementById("footer").innerText =
     isChinese ? "愿你有美好的一天" : "Have a Beautiful Day";
 }
 
-/* 下载 */
+/* 📸 下载（终极稳定版） */
 function downloadImage(){
   const controls = document.querySelector(".controls");
   controls.style.display = "none";
 
-  html2canvas(document.getElementById("card"), {scale:2}).then(canvas=>{
-    const link = document.createElement("a");
-    link.download = "blessing.png";
-    link.href = canvas.toDataURL();
-    link.click();
-    controls.style.display = "flex";
-  });
+  const img = document.getElementById("bg");
+
+  if (!img.complete) {
+    img.onload = capture;
+  } else {
+    capture();
+  }
+
+  function capture(){
+    html2canvas(document.getElementById("card"), {
+      useCORS: true,
+      scale: 2
+    }).then(canvas=>{
+      const link = document.createElement("a");
+      link.download = "blessing.png";
+      link.href = canvas.toDataURL();
+      link.click();
+      controls.style.display = "flex";
+    });
+  }
 }
 
+/* 初始化 */
 searchVerse();
 </script>
 
