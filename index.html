@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Daily Blessing</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Georgia', serif;
+      color: white;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background-size: cover;
+      background-position: center;
+    }
+
+    .overlay {
+      background: rgba(0,0,0,0.4);
+      padding: 40px;
+      border-radius: 20px;
+      max-width: 600px;
+    }
+
+    h1 {
+      font-size: 40px;
+      margin-bottom: 20px;
+    }
+
+    .verse {
+      font-size: 20px;
+      margin: 20px 0;
+    }
+
+    .ref {
+      font-size: 16px;
+      opacity: 0.8;
+    }
+
+    .footer {
+      margin-top: 30px;
+      font-size: 24px;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+
+<div class="overlay">
+  <h1 id="day"></h1>
+  <div class="verse" id="verse"></div>
+  <div class="ref" id="ref"></div>
+  <div class="footer">Have a Beautiful Day</div>
+</div>
+
+<script>
+  const verses = [
+    {
+      text: "The Lord is my shepherd; I shall not want.",
+      ref: "Psalm 23:1"
+    },
+    {
+      text: "I can do all things through Christ who strengthens me.",
+      ref: "Philippians 4:13"
+    },
+    {
+      text: "Be still, and know that I am God.",
+      ref: "Psalm 46:10"
+    },
+    {
+      text: "With God all things are possible.",
+      ref: "Matthew 19:26"
+    }
+  ];
+
+  const images = [
+    "https://images.unsplash.com/photo-1506744038136-46273834b3fb",
+    "https://images.unsplash.com/photo-1501785888041-af3ef285b470",
+    "https://images.unsplash.com/photo-1493244040629-496f6d136cc3"
+  ];
+
+  const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+
+  const today = new Date();
+  const seed = today.getDate(); // 保证每天固定
+
+  function random(seed, max) {
+    const x = Math.sin(seed) * 10000;
+    return Math.floor((x - Math.floor(x)) * max);
+  }
+
+  const day = days[today.getDay()];
+  const verseIndex = random(seed, verses.length);
+  const imageIndex = random(seed + 1, images.length);
+
+  document.getElementById("day").innerText = "Blessing " + day;
+  document.getElementById("verse").innerText = verses[verseIndex].text;
+  document.getElementById("ref").innerText = verses[verseIndex].ref;
+
+  document.body.style.backgroundImage = `url(${images[imageIndex]})`;
+</script>
+
+</body>
+</html>
