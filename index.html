@@ -1,100 +1,145 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Daily Blessing</title>
 
 <style>
+* {
+  box-sizing:border-box;
+}
+
 body {
   margin:0;
-  background:#000;
+  min-height:100vh;
+  background:#111;
   display:flex;
   justify-content:center;
   align-items:center;
-  height:100vh;
-  font-family:Georgia,serif;
+  font-family:Georgia, "Times New Roman", "Noto Serif SC", serif;
 }
 
 .card {
-  width:360px;
-  height:640px;
+  width:min(360px, 100vw);
+  height:min(640px, 100vh);
   position:relative;
   overflow:hidden;
-  background:#000;
+  background:#f7f4ea;
 }
 
 .bg-img {
   position:absolute;
+  inset:0;
   width:100%;
   height:100%;
   object-fit:cover;
+  filter:saturate(1.08) brightness(1.03);
 }
 
 .overlay {
   position:absolute;
-  width:100%;
-  height:100%;
-  background:linear-gradient(to bottom,rgba(0,0,0,0.05),rgba(0,0,0,0.6));
+  inset:0;
+  background:
+    linear-gradient(to bottom,
+      rgba(255,255,255,0.96) 0%,
+      rgba(255,255,255,0.9) 34%,
+      rgba(255,255,255,0.56) 48%,
+      rgba(255,255,255,0.08) 68%,
+      rgba(0,0,0,0.2) 100%),
+    radial-gradient(circle at 50% 28%, rgba(255,255,255,0.82), transparent 30%);
 }
 
 .content {
   position:relative;
-  height:100%;
+  z-index:2;
+  min-height:100%;
   display:flex;
   flex-direction:column;
-  justify-content:center;
+  align-items:center;
   text-align:center;
-  color:white;
-  padding:120px 20px 80px;
+  color:#111;
+  padding:28px 22px 150px;
+  pointer-events:none;
 }
 
-h1 { margin-bottom:20px; }
+h1 {
+  margin:0 0 24px;
+  color:#a40746;
+  font-size:46px;
+  line-height:0.94;
+  font-style:italic;
+  font-weight:700;
+  text-shadow:0 2px 0 rgba(255,255,255,0.95);
+}
 
 .verse-en {
-  font-size:17px;
-  margin:10px auto;
-  max-width:260px;
+  font-size:21px;
+  line-height:1.34;
+  margin:0 auto 12px;
+  max-width:318px;
+  text-shadow:0 1px 0 #fff;
 }
 
 .verse-zh {
   font-size:18px;
-  margin:10px auto;
-  max-width:260px;
+  line-height:1.42;
+  margin:0 auto 10px;
+  max-width:302px;
+  font-weight:700;
+  text-shadow:0 1px 0 #fff;
 }
 
 .ref {
-  font-size:14px;
-  opacity:0.8;
+  font-size:19px;
+  font-weight:700;
+  text-shadow:0 1px 0 #fff;
 }
 
 .footer {
-  margin-top:30px;
+  margin-top:18px;
+  color:#405a17;
+  font-size:17px;
   font-style:italic;
+  font-weight:700;
+  text-shadow:0 1px 0 rgba(255,255,255,0.95);
 }
 
 .controls {
   position:absolute;
+  z-index:3;
+  left:0;
   bottom:10px;
   width:100%;
   display:flex;
   flex-wrap:wrap;
   justify-content:center;
-  gap:5px;
+  gap:6px;
+  padding:0 12px;
+  font-family:Arial, "Microsoft YaHei", sans-serif;
 }
 
 input {
-  width:120px;
+  width:126px;
+  min-height:32px;
   border-radius:8px;
-  border:none;
-  padding:5px;
+  border:1px solid rgba(50,50,50,0.18);
+  padding:5px 8px;
+  background:rgba(255,255,255,0.93);
 }
 
 button {
-  border:none;
+  min-height:32px;
+  border:1px solid rgba(50,50,50,0.18);
   border-radius:10px;
   padding:6px 10px;
+  background:rgba(255,255,255,0.94);
   cursor:pointer;
+}
+
+button:hover,
+input:focus {
+  outline:2px solid rgba(164,7,70,0.25);
 }
 </style>
 </head>
@@ -102,7 +147,7 @@ button {
 <body>
 
 <div class="card" id="card">
-  <img id="bg" class="bg-img">
+  <img id="bg" class="bg-img" crossorigin="anonymous" alt="">
   <div class="overlay"></div>
 
   <div class="content">
@@ -124,122 +169,168 @@ button {
 <script src="https://cdn.jsdelivr.net/npm/html2canvas"></script>
 
 <script>
-/* 🔒 防止保存时乱跳 */
 let isCapturing = false;
 
-/* 稳定图片 */
-const images = Array.from({length:10}, (_,i)=>
-  "https://picsum.photos/400/700?random="+i
-);
+const images = [
+  "https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=720&h=1280&q=85",
+  "https://images.unsplash.com/photo-1462275646964-a0e3386b89fa?auto=format&fit=crop&w=720&h=1280&q=85",
+  "https://images.unsplash.com/photo-1508610048659-a06b669e3321?auto=format&fit=crop&w=720&h=1280&q=85",
+  "https://images.unsplash.com/photo-1520763185298-1b434c919102?auto=format&fit=crop&w=720&h=1280&q=85",
+  "https://images.unsplash.com/photo-1526047932273-341f2a7631f9?auto=format&fit=crop&w=720&h=1280&q=85",
+  "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=720&h=1280&q=85",
+  "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=720&h=1280&q=85",
+  "https://images.unsplash.com/photo-1518495973542-4542c06a5843?auto=format&fit=crop&w=720&h=1280&q=85"
+];
 
 function randomBg(){
-  if(isCapturing) return;  // ✅ 锁住
-  document.getElementById("bg").src =
-    images[Math.floor(Math.random()*images.length)];
+  if(isCapturing) return;
+
+  const bg = document.getElementById("bg");
+  bg.src = images[Math.floor(Math.random() * images.length)];
 }
 
-/* 星期 */
-const days=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 function updateDay(){
   document.getElementById("day").innerText =
-    "Blessing " + days[new Date().getDay()];
+    "Blessed " + days[new Date().getDay()];
 }
 
-/* 中文映射 */
-const zhMap={
-"John 3:16":"神爱世人，甚至将他的独生子赐给他们...",
-"Psalm 23:1":"耶和华是我的牧者，我必不致缺乏。",
-"Romans 8:28":"万事都互相效力，叫爱神的人得益处。",
-"Philippians 4:13":"我靠着那加给我力量的，凡事都能做。",
-"Isaiah 41:10":"你不要害怕，因为我与你同在。",
-"Matthew 5:16":"你们的光也当这样照在人前。",
-"Proverbs 3:5":"你要专心仰赖耶和华。",
-"Jeremiah 29:11":"我知道我向你们所怀的意念。"
-};
+const verseList = [
+  {
+    ref:"John 3:16",
+    en:"For God so loved the world, that he gave his only begotten Son.",
+    zh:"神爱世人，甚至将他的独生子赐给他们。"
+  },
+  {
+    ref:"Psalm 23:1",
+    en:"The Lord is my shepherd; I shall not want.",
+    zh:"耶和华是我的牧者，我必不致缺乏。"
+  },
+  {
+    ref:"Romans 8:28",
+    en:"All things work together for good to them that love God.",
+    zh:"万事都互相效力，叫爱神的人得益处。"
+  },
+  {
+    ref:"Philippians 4:13",
+    en:"I can do all things through Christ, who strengthens me.",
+    zh:"我靠着那加给我力量的，凡事都能做。"
+  },
+  {
+    ref:"Isaiah 41:10",
+    en:"Fear thou not; for I am with thee.",
+    zh:"你不要害怕，因为我与你同在。"
+  },
+  {
+    ref:"Matthew 5:16",
+    en:"Let your light so shine before men.",
+    zh:"你们的光也当这样照在人前。"
+  },
+  {
+    ref:"Proverbs 3:5",
+    en:"Trust in the Lord with all thine heart.",
+    zh:"你要专心仰赖耶和华。"
+  },
+  {
+    ref:"Jeremiah 29:11",
+    en:"For I know the thoughts that I think toward you, saith the Lord.",
+    zh:"我知道我向你们所怀的意念。"
+  }
+];
 
-/* 中文输入解析 */
+const zhMap = Object.fromEntries(verseList.map(verse => [verse.ref, verse.zh]));
+
+function renderVerse(verse){
+  document.getElementById("verse-en").innerText = verse.en;
+  document.getElementById("verse-zh").innerText = verse.zh;
+  document.getElementById("ref").innerText = verse.ref;
+  updateDay();
+}
+
 function parseInput(input){
-  input=input.trim();
+  input = input.trim();
 
-  if(input.includes("诗篇")) return input.replace("诗篇","Psalm ");
-  if(input.includes("约翰")) return input.replace("约翰福音","John ");
-  if(input.includes("罗马")) return input.replace("罗马书","Romans ");
-  if(input.includes("腓立比")) return input.replace("腓立比书","Philippians ");
+  if(input.includes("诗篇")) return input.replace("诗篇", "Psalm ");
+  if(input.includes("约翰")) return input.replace("约翰福音", "John ");
+  if(input.includes("罗马")) return input.replace("罗马书", "Romans ");
+  if(input.includes("腓立比")) return input.replace("腓立比书", "Philippians ");
 
   return input;
 }
 
-/* 搜索（不再换背景） */
 async function searchVerse(){
+  let q = document.getElementById("search").value || "Psalm 23:1";
+  q = parseInput(q);
+  updateDay();
 
-  let q=document.getElementById("search").value || "Psalm 23:1";
-  q=parseInput(q);
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 6000);
+    const res = await fetch("https://bible-api.com/" + q, { signal:controller.signal });
+    clearTimeout(timeout);
+    const data = await res.json();
 
-  try{
-    const res=await fetch("https://bible-api.com/"+q);
-    const data=await res.json();
-
-    document.getElementById("verse-en").innerText=data.text;
+    document.getElementById("verse-en").innerText = data.text;
     document.getElementById("verse-zh").innerText =
       zhMap[data.reference] || "（暂无中文）";
-    document.getElementById("ref").innerText=data.reference;
+    document.getElementById("ref").innerText = data.reference;
 
-  }catch{
-    document.getElementById("verse-en").innerText="Not found";
-    document.getElementById("verse-zh").innerText="未找到经文";
-    document.getElementById("ref").innerText="";
+  } catch {
+    const localVerse = verseList.find(verse => verse.ref.toLowerCase() === q.toLowerCase());
+
+    if(localVerse){
+      renderVerse(localVerse);
+      return;
+    }
+
+    document.getElementById("verse-en").innerText = "Not found";
+    document.getElementById("verse-zh").innerText = "未找到经文";
+    document.getElementById("ref").innerText = "";
   }
-
-  updateDay();
 }
 
-/* 随机（才换背景） */
 function randomVerse(){
   randomBg();
-  const list=Object.keys(zhMap);
-  document.getElementById("search").value =
-    list[Math.floor(Math.random()*list.length)];
-  searchVerse();
+  const verse = verseList[Math.floor(Math.random() * verseList.length)];
+  document.getElementById("search").value = verse.ref;
+  renderVerse(verse);
 }
 
-/* 🚀 Download（终极稳定版） */
 function downloadImage(){
-
   isCapturing = true;
 
-  const controls=document.querySelector(".controls");
-  controls.style.display="none";
+  const controls = document.querySelector(".controls");
+  controls.style.display = "none";
 
-  const img=document.getElementById("bg");
+  const img = document.getElementById("bg");
 
   if(!img.complete){
-    img.onload=capture;
-  }else{
+    img.onload = capture;
+  } else {
     capture();
   }
 
   function capture(){
     html2canvas(document.getElementById("card"),{
       useCORS:true,
-      scale:2
-    }).then(canvas=>{
-      const link=document.createElement("a");
-      link.download="blessing.png";
-      link.href=canvas.toDataURL("image/png");
+      scale:2,
+      backgroundColor:null
+    }).then(canvas => {
+      const link = document.createElement("a");
+      link.download = "blessing.png";
+      link.href = canvas.toDataURL("image/png");
       link.click();
 
-      controls.style.display="flex";
+      controls.style.display = "flex";
       isCapturing = false;
     });
   }
 }
 
-/* 防止回车触发 */
-document.getElementById("search").addEventListener("keydown", e=>{
-  if(e.key==="Enter") e.preventDefault();
+document.getElementById("search").addEventListener("keydown", e => {
+  if(e.key === "Enter") e.preventDefault();
 });
 
-/* 初始化 */
 randomVerse();
 </script>
 
