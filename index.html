@@ -296,34 +296,61 @@ function randomVerse(){
   renderVerse(verse);
 }
 
-function downloadImage(){
+function waitForImage(img){
+  if(img.complete && img.naturalWidth > 0) return Promise.resolve();
+
+  return new Promise((resolve, reject) => {
+    img.addEventListener("load", resolve, { once:true });
+    img.addEventListener("error", reject, { once:true });
+  });
+}
+
+function freezeImageSource(img){
+  const canvas = document.createElement("canvas");
+  canvas.width = img.naturalWidth;
+  canvas.height = img.naturalHeight;
+
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(img, 0, 0);
+
+  return canvas.toDataURL("image/jpeg", 0.92);
+}
+
+async function downloadImage(){
   isCapturing = true;
 
   const controls = document.querySelector(".controls");
   controls.style.display = "none";
 
   const img = document.getElementById("bg");
+  const originalSrc = img.src;
+  let frozenSrc = "";
 
-  if(!img.complete){
-    img.onload = capture;
-  } else {
-    capture();
-  }
+  try {
+    await waitForImage(img);
 
-  function capture(){
-    html2canvas(document.getElementById("card"),{
+    try {
+      frozenSrc = freezeImageSource(img);
+      img.src = frozenSrc;
+      await waitForImage(img);
+    } catch {
+      frozenSrc = "";
+    }
+
+    const canvas = await html2canvas(document.getElementById("card"),{
       useCORS:true,
       scale:2,
       backgroundColor:null
-    }).then(canvas => {
-      const link = document.createElement("a");
-      link.download = "blessing.png";
-      link.href = canvas.toDataURL("image/png");
-      link.click();
-
-      controls.style.display = "flex";
-      isCapturing = false;
     });
+
+    const link = document.createElement("a");
+    link.download = "blessing.png";
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+  } finally {
+    if(frozenSrc) img.src = originalSrc;
+    controls.style.display = "flex";
+    isCapturing = false;
   }
 }
 
