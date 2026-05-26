@@ -185,11 +185,11 @@ const images = [
   "https://images.unsplash.com/photo-1486608766848-9b9fe0c37b9d?auto=format&fit=crop&w=720&h=1280&q=85",
   "https://images.unsplash.com/photo-1525832571522-32470178c177?auto=format&fit=crop&w=720&h=1280&q=85",
   "https://images.unsplash.com/photo-1555926471-27da93eeca5b?auto=format&fit=crop&w=720&h=1280&q=85",
-  "https://commons.wikimedia.org/wiki/Special:Redirect/file/Redtulips.jpg?width=720",
-  "https://commons.wikimedia.org/wiki/Special:Redirect/file/Tulip-6009.jpg?width=720",
-  "https://commons.wikimedia.org/wiki/Special:Redirect/file/Tulips-6687.jpg?width=720",
-  "https://commons.wikimedia.org/wiki/Special:Redirect/file/Field_of_red_tulips_in_bloom_-_49745674823.jpg?width=720",
-  "https://commons.wikimedia.org/wiki/Special:Redirect/file/Field_of_red_tulips_in_bloom_-_49746543947.jpg?width=720",
+  "https://images.unsplash.com/photo-1419293667059-7f9357d09013?auto=format&fit=crop&w=720&h=1280&q=85",
+  "https://images.unsplash.com/photo-1532053535693-4d96cfd5f529?auto=format&fit=crop&w=720&h=1280&q=85",
+  "https://images.unsplash.com/photo-1586119143656-5252e22b1f2a?auto=format&fit=crop&w=720&h=1280&q=85",
+  "https://images.unsplash.com/photo-1773257618958-c2ec3e0d249f?auto=format&fit=crop&w=720&h=1280&q=85",
+  "https://images.unsplash.com/photo-1565889673228-c963fae33465?auto=format&fit=crop&w=720&h=1280&q=85",
   "https://images.unsplash.com/photo-1520763185298-1b434c919102?auto=format&fit=crop&w=720&h=1280&q=85",
   "https://images.unsplash.com/photo-1525310072745-f49212b5ac6d?auto=format&fit=crop&w=720&h=1280&q=85",
   "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=720&h=1280&q=85",
@@ -202,7 +202,31 @@ function randomBg(){
   if(isCapturing) return;
 
   const bg = document.getElementById("bg");
-  bg.src = images[Math.floor(Math.random() * images.length)];
+  const currentSrc = bg.src;
+  const nextSrc = pickImage(currentSrc);
+  const preload = new Image();
+
+  preload.crossOrigin = "anonymous";
+  preload.onload = () => {
+    bg.src = nextSrc;
+  };
+  preload.onerror = () => {
+    const stillCurrent = bg.src === currentSrc;
+    if(stillCurrent) randomBg();
+  };
+  preload.src = nextSrc;
+}
+
+function pickImage(currentSrc){
+  if(images.length === 1) return images[0];
+
+  let nextSrc = images[Math.floor(Math.random() * images.length)];
+
+  while(currentSrc && currentSrc.includes(nextSrc.split("?")[0])){
+    nextSrc = images[Math.floor(Math.random() * images.length)];
+  }
+
+  return nextSrc;
 }
 
 const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
