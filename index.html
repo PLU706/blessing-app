@@ -170,6 +170,7 @@ input:focus {
 
 <script>
 let isCapturing = false;
+let imageQueue = [];
 
 const images = [
   "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=720&h=1280&q=85",
@@ -220,10 +221,20 @@ function randomBg(){
 function pickImage(currentSrc){
   if(images.length === 1) return images[0];
 
-  let nextSrc = images[Math.floor(Math.random() * images.length)];
+  if(imageQueue.length === 0){
+    imageQueue = [...images].sort(() => Math.random() - 0.5);
+  }
+
+  let nextSrc = imageQueue.shift();
 
   while(currentSrc && currentSrc.includes(nextSrc.split("?")[0])){
-    nextSrc = images[Math.floor(Math.random() * images.length)];
+    imageQueue.push(nextSrc);
+
+    if(imageQueue.length === 0){
+      imageQueue = [...images].sort(() => Math.random() - 0.5);
+    }
+
+    nextSrc = imageQueue.shift();
   }
 
   return nextSrc;
